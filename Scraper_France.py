@@ -31,7 +31,7 @@ else:
         console.log(f"[bold red]Error loading GeoJSON file: {e}[/bold red]")
 
 # Number of grids to split the bounding box into
-NUM_GRIDS = 1800  # Set to ensure at least 1800 grid points
+NUM_GRIDS = 10000  # Set to ensure at least 10,000 grid points
 console.log(f"[bold blue]Number of grids set to: {NUM_GRIDS}[/bold blue]")
 
 # Define maximum number of API requests per day
