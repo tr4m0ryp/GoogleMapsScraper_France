@@ -34,7 +34,7 @@ else:
 NUM_GRIDS = 10000  # Set to ensure at least 10,000 grid points
 console.log(f"[bold blue]Number of grids set to: {NUM_GRIDS}[/bold blue]")
 
-# Define maximum number of API requests per day
+# Define maximum number of API requests per day and per minute
 MAX_REQUESTS_PER_DAY = 500000
 MAX_REQUESTS_PER_MINUTE = 2000
 console.log(f"[bold blue]Max API requests per day: {MAX_REQUESTS_PER_DAY}[/bold blue]")
@@ -111,15 +111,15 @@ def get_places(api_key, query, location, radius):
                 time.sleep(60)  # Pause to respect the rate limit
 
         except googlemaps.exceptions.ApiError as e:
-            if 'OVER_QUERY_LIMIT' in str(e):
-                console.log("[bold red]Reached API rate limit. Waiting before retrying...[/bold red]")
-                time.sleep(10)  # Wait before retrying
-            else:
-                console.log(f"[bold red]API Error fetching places: {e}[/bold red]")
+            console.log(f"[bold red]API Error: {e}[/bold red]")
+            if 'OVER_QUERY_LIMIT' in str(e) or 'REQUEST_DENIED' in str(e) or 'BILLING' in str(e):
+                console.log("[bold red]Critical error encountered. Pausing script and saving data.[/bold red]")
+                save_and_prompt(places, "Partial_Data_France.xlsx")
                 break
 
         except Exception as e:
             console.log(f"[bold red]Error fetching places: {e}[/bold red]")
+            save_and_prompt(places, "Partial_Data_France.xlsx")
             break
 
     console.log(f"[bold blue]Total identical places skipped: {identical_count}[/bold blue]")
@@ -148,6 +148,15 @@ def generate_grid_coordinates(borders, num_grids):
     except Exception as e:
         console.log(f"[bold red]Error generating grid coordinates: {e}[/bold red]")
         return []
+
+def save_and_prompt(data, filename):
+    create_excel_file(data, filename)
+    user_input = input("[bold blue]Do you want to continue? (yes/no): [/bold blue]").strip().lower()
+    if user_input == 'no':
+        console.log("[bold red]Stopping script as per user request.[/bold red]")
+        exit()
+    else:
+        console.log("[bold green]Resuming script...[/bold green]")
 
 def main():
     console.log("[bold blue]Starting main process for France...[/bold blue]")
